@@ -1,3 +1,5 @@
 ECG_BEAT_LENGTH = 320
 ECG_BEAT_LABELS = ["Normal", "LBBB", "RBBB", "PVC", "APB"]
 ECG_BEAT_SYMBOLS = ["N", "L", "R", "V", "A"]
+FREQUENCY_SAMPLING = 250
+DATA_TYPE = "float32"
