@@ -8,6 +8,11 @@ from src.models.ecg_interpretation.ecg_caption import TopicTransformer, Vocabula
 
 # sys.modules["__main__"] = sys.modules[__name__]
 
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
 
 # load caption model
 sys.modules["__main__"].Vocabulary = Vocabulary
