@@ -1,6 +1,8 @@
 import os
 import time
 
+import numpy as np
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -10,6 +12,12 @@ from src.models.beat_classification.inference import (
     predict_ecg_beat_signals,
     qrs_detection,
     extract_qrs_segments,
+)
+from src.models.ecg_interpretation.inference import predict_ecg_caption
+from src.utils.config import (
+    FREQUENCY_SAMPLING,
+    INPUT_FREQUENCY_SAMPLING,
+    ECG_BEAT_LENGTH,
 )
 
 
@@ -65,15 +73,19 @@ async def handle_ecg_beat_analysis(item: ECGSignalInput):
         # Process ECG signal
         signal = item.ecg
         processed_signal = preprocess_signal(signal)
-        # processed_signal = signal
-
-        # detect qrs beat
         qrs_beat_positions, qrs_ind_beat = qrs_detection(processed_signal)
 
-        # extract list ecg signal
-        qrs_segments = extract_qrs_segments(processed_signal, qrs_beat_positions)
+        # Calculate segment length for 250 Hz signal
+        segment_length_250 = int(
+            np.round((INPUT_FREQUENCY_SAMPLING / FREQUENCY_SAMPLING) * ECG_BEAT_LENGTH)
+        )
 
-        # detect beats labels
+        # Extract QRS segments with calculated length
+        qrs_segments = extract_qrs_segments(
+            processed_signal, qrs_beat_positions, segment_length=segment_length_250
+        )
+
+        # Predict beat labels with resampling
         predicted_labels, predicted_symbols, scores = predict_ecg_beat_signals(
             qrs_segments
         )
@@ -85,8 +97,24 @@ async def handle_ecg_beat_analysis(item: ECGSignalInput):
                 predicted_beat_symbol=predicted_symbols,
                 qrs_beat_positions=qrs_beat_positions.tolist(),
                 qrs_ind_beat=qrs_ind_beat.tolist(),
-                # qrs_ind_beat=qrs_segments.tolist(),
             ),
+        )
+    except Exception as e:
+        error_message = str(e)
+        return dict(error=1, data={}, message=error_message)
+
+
+@app.post("/ecg_captioning")
+async def handle_ecg_captioning(item: ECGSignalInput):
+    try:
+        # Process ECG signal
+        signal = item.ecg
+        processed_signal = preprocess_signal(signal)
+        caption = predict_ecg_caption(processed_signal)
+
+        return dict(
+            error=0,
+            data=dict(caption=caption),
         )
     except Exception as e:
         error_message = str(e)

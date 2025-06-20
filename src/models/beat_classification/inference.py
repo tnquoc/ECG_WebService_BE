@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import models
-import matplotlib.pyplot as plt
+from scipy.signal import resample
 
 from src.utils.config import (
     ECG_BEAT_SYMBOLS,
@@ -45,20 +45,25 @@ def preprocess_beat_signals(input_signals):
 
 def predict_ecg_beat_signals(input_signals):
     try:
-        ecg_data = preprocess_beat_signals(input_signals)
+        # Resample each segment from 250 Hz to 360 Hz
+        resampled_signals = [
+            resample(segment, ECG_BEAT_LENGTH) for segment in input_signals
+        ]
+        ecg_data = np.array(resampled_signals).reshape(
+            len(input_signals), ECG_BEAT_LENGTH, 1
+        )
 
-        os.rmdir("src/images", ignore_errors=True)
-        os.mkdir("src/images")
-        for i, signal in enumerate(ecg_data):
-            plt.figure()
-            plt.plot(signal)
-            plt.savefig(f"src/images/ecg_beat_classification_{i}.png")
+        # Optional: Plot resampled signals for debugging
+        # for i, signal in enumerate(ecg_data):
+        #     plt.figure()
+        #     plt.plot(signal)
+        #     plt.savefig(f"src/images/ecg_beat_classification_{i}.png")
 
-        # model prediction
+        # Model prediction
         predictions = beat_cls_model(ecg_data, training=False)
         predictions = tf.nn.softmax(predictions, axis=1).numpy()
 
-        # collect prediction
+        # Collect prediction results
         predicted_labels = []
         predicted_symbols = []
         scores = []
