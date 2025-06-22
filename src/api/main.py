@@ -13,7 +13,10 @@ from src.models.beat_classification.inference import (
     qrs_detection,
     extract_qrs_segments,
 )
-from src.models.ecg_interpretation.inference import predict_ecg_caption
+from src.models.ecg_interpretation.inference import (
+    predict_ecg_caption,
+    enhance_ecg_caption,
+)
 from src.utils.config import (
     FREQUENCY_SAMPLING,
     INPUT_FREQUENCY_SAMPLING,
@@ -111,6 +114,7 @@ async def handle_ecg_captioning(item: ECGSignalInput):
         signal = item.ecg
         processed_signal = preprocess_signal(signal)
         caption = predict_ecg_caption(processed_signal)
+        caption = enhance_ecg_caption(processed_signal, caption)
 
         return dict(
             error=0,
