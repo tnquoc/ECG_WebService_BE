@@ -6,7 +6,7 @@ import numpy as np
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.schemas import ECGBeatInput, ECGSignalInput
+from src.api.schemas import ECGBeatInput, ECGSignalInput, ECGMLInput
 from src.models.beat_classification.inference import (
     preprocess_signal,
     predict_ecg_beat_signals,
@@ -17,6 +17,7 @@ from src.models.ecg_interpretation.inference import (
     predict_ecg_caption,
     enhance_ecg_caption,
 )
+from src.models.multi_lead_classification.inference import predict_ml_ecg_signals
 from src.utils.config import (
     FREQUENCY_SAMPLING,
     INPUT_FREQUENCY_SAMPLING,
@@ -119,6 +120,22 @@ async def handle_ecg_captioning(item: ECGSignalInput):
         return dict(
             error=0,
             data=dict(caption=caption),
+        )
+    except Exception as e:
+        error_message = str(e)
+        return dict(error=1, data={}, message=error_message)
+
+
+@app.post("/ecg_ml_classification")
+async def handle_ecg_ml_classification(item: ECGMLInput):
+    try:
+        # Process ECG signal
+        signal = item.ecgs
+        predictions = predict_ml_ecg_signals(signal)
+
+        return dict(
+            error=0,
+            data=dict(predictions=predictions),
         )
     except Exception as e:
         error_message = str(e)
