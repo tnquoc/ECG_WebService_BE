@@ -6,3 +6,14 @@ class ECGBeatInput(BaseModel):
         ...,
         description="List of ECG signals, each signal is a list of 320 values.",
     )
+
+
+class ECGSignalInput(BaseModel):
+    ecg: list[float] = Field(..., description="ECG signal as a list of floats.")
+
+
+class ECGMLInput(BaseModel):
+    ecgs: list[list[float]] = Field(
+        ...,
+        description="List of ECG signals, each signal is a list of 1000 values.",
+    )

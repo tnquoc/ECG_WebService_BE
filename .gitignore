@@ -1,1 +1,5 @@
 __pycache__
+src/images
+src/models/beat_classification/checkpoints
+src/models/ecg_interpretation/checkpoints
+src/models/multi_lead_classification/checkpoints
